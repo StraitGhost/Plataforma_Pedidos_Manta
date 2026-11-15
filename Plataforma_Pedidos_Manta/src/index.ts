@@ -1,10 +1,14 @@
-
 import express, { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 import { contarPrimos } from './calculo';
 import { medirLatencia, resumenMetricas } from './metricas';
+import { contarPrimosEnPool, estadoPool } from './pool';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT ?? 3000);
 const INVENTARIO_URL = process.env.INVENTARIO_URL ?? 'http://localhost:3001';
@@ -23,6 +27,7 @@ const app = express();
 
 app.use(express.json());
 app.use(medirLatencia);
+app.disable('x-powered-by');
 
 app.get('/health', (_req: Request, res: Response) => {
     res.status(200).send('OK');
@@ -69,33 +74,40 @@ app.get('/health/ready', async (_req: Request, res: Response) => {
 });
 
 app.get('/metricas', (_req: Request, res: Response) => {
-    res.json(resumenMetricas());
+    res.json({ ...resumenMetricas(), pool: estadoPool() });
 });
 
-app.get('/reporte/bloqueante', (_req: Request, res: Response) => {
+function leerN(req: Request): number {
+    const n = Number(req.query.n ?? N_REPORTE);
+    return Number.isInteger(n) && n > 0 ? n : N_REPORTE;
+}
+
+app.get('/reporte/bloqueante', (req: Request, res: Response) => {
     const inicio = performance.now();
-    const primos = contarPrimos(N_REPORTE);
+    const n = leerN(req);
+    const primos = contarPrimos(n);
 
     res.json({
-        n: N_REPORTE,
+        n,
         primos,
         ms: Math.round(performance.now() - inicio),
     });
 });
 
-app.get('/reporte/worker', (_req: Request, res: Response) => {
+app.get('/reporte/worker', (req: Request, res: Response) => {
     const inicio = performance.now();
+    const n = leerN(req);
 
     const worker = new Worker(
         path.join(__dirname, 'worker-reporte.js'),
         {
-            workerData: { n: N_REPORTE },
+            workerData: { n },
         }
     );
 
     worker.once('message', (primos: number) => {
         res.json({
-            n: N_REPORTE,
+            n,
             primos,
             ms: Math.round(performance.now() - inicio),
         });
@@ -111,6 +123,25 @@ app.get('/reporte/worker', (_req: Request, res: Response) => {
             detalle,
         });
     });
+});
+
+app.get('/reporte/pool', async (req: Request, res: Response) => {
+    const inicio = performance.now();
+    const n = leerN(req);
+
+    try {
+        const primos = await contarPrimosEnPool(n);
+        res.json({ n, primos, modo: 'pool', ms: Math.round(performance.now() - inicio) });
+    } catch (error) {
+        const e = error as Error;
+        if (e.name === 'PoolLleno') {
+            res.status(503)
+                .set('Retry-After', '1')
+                .json({ error: 'Pool lleno, reintenta más tarde', pool: estadoPool() });
+            return;
+        }
+        res.status(500).json({ error: 'Falló el cálculo del reporte', detalle: e.message });
+    }
 });
 
 app.get('/pedidos', (_req: Request, res: Response) => {
