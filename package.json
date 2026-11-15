@@ -1,3 +1,4 @@
+
 {
   "name": "visual",
   "version": "1.0.0",
@@ -9,13 +10,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "express": "^5.3.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/StraitGhost/Plataforma_Pedidos_Manta.git"
+    "url": "https://github.com/StraitGhost/Plataforma_Pedidos_Manta.git"
   },
   "bugs": {
     "url": "https://github.com/StraitGhost/Plataforma_Pedidos_Manta/issues"

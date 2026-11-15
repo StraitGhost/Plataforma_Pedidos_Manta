@@ -1,7 +1,17 @@
+# Dependencias
 node_modules/
+
+# Build / distribución
 dist/
+
+# Archivos de entorno
 .env
 .env.local
-.env.*
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS
 .DS_Store
+Thumbs.db

@@ -3,9 +3,9 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
-import { contarPrimos } from './calculo';
-import { medirLatencia, resumenMetricas } from './metricas';
-import { contarPrimosEnPool, estadoPool } from './pool';
+import { contarPrimos } from './calculo.js';
+import { medirLatencia, resumenMetricas } from './metricas.js';
+import { contarPrimosEnPool, estadoPool } from './pool.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
