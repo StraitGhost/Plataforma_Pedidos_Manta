@@ -4,6 +4,7 @@ services:
     build: ./inventario
     ports:
       - "3001:3001"
+      - "50051:50051"
     healthcheck:
       test: ["CMD", "wget", "-q0-", "http://localhost:3001/health"]
       interval: 30s
@@ -16,6 +17,7 @@ services:
       - "3000:3000"
     environment:
       INVENTARIO_URL: http://inventario:3001
+      INVENTARIO_GRPC_URL: inventario:50051
     healthcheck:
       test: ["CMD", "wget", "-q0-", "http://localhost:3000/health"]
       interval: 30s

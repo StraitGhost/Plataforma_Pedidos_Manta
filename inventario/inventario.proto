@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package Inventario;
+
+service Inventario {
+    rpc ConsultarStock(SolicitudStock) returns (Stock);
+    rpc Reservar(SolicitudReserva) returns (Reserva);
+}
+
+message SolicitudStock {
+    string sku = 1;
+}
+
+message Stock {
+    string sku = 1;
+    int32 disponible = 2;
+}
+
+message SolicitudReserva {
+    string sku = 1;
+    int32 cantidad = 2;
+}
+
+message Reserva {
+    string sku = 1;
+    int32 reservado = 2;
+    int32 restante = 3;
+}

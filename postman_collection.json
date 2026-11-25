@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "Inventario y Pedidos (gRPC)",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "Coleccion para probar los servicios HTTP y el contrato gRPC Inventario.Inventario/Reservar.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "inventario_url", "value": "http://localhost:3001" },
+    { "key": "pedidos_url", "value": "http://localhost:3000" },
+    { "key": "grpc_host", "value": "localhost:50051" }
+  ],
+  "item": [
+    {
+      "name": "Inventario (HTTP)",
+      "item": [
+        {
+          "name": "Health",
+          "request": { "method": "GET", "url": "{{inventario_url}}/health" }
+        },
+        {
+          "name": "Stock MORA-USB",
+          "request": { "method": "GET", "url": "{{inventario_url}}/stock/MORA-USB" }
+        },
+        {
+          "name": "Stock MOUSE-USB",
+          "request": { "method": "GET", "url": "{{inventario_url}}/stock/MOUSE-USB" }
+        }
+      ]
+    },
+    {
+      "name": "Pedidos (HTTP)",
+      "item": [
+        {
+          "name": "Health",
+          "request": { "method": "GET", "url": "{{pedidos_url}}/health" }
+        },
+        {
+          "name": "Health Ready",
+          "request": { "method": "GET", "url": "{{pedidos_url}}/health/ready" }
+        },
+        {
+          "name": "Pedido MORA-USB x15",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"sku\": \"MORA-USB\", \"cantidad\": 15 }" },
+            "url": "{{pedidos_url}}/pedidos"
+          }
+        },
+        {
+          "name": "Listar pedidos",
+          "request": { "method": "GET", "url": "{{pedidos_url}}/pedidos" }
+        }
+      ]
+    },
+    {
+      "name": "Inventario (gRPC) - Reservar",
+      "item": [
+        {
+          "name": "cantidad 0 -> INVALID_ARGUMENT",
+          "request": {
+            "method": "gRPC",
+            "url": "{{grpc_host}}",
+            "grpc": {
+              "method": "Inventario.Inventario/Reservar",
+              "message": "{ \"sku\": \"MORA-USB\", \"cantidad\": 0 }"
+            }
+          }
+        },
+        {
+          "name": "TABLET-10 -> NOT_FOUND",
+          "request": {
+            "method": "gRPC",
+            "url": "{{grpc_host}}",
+            "grpc": {
+              "method": "Inventario.Inventario/Reservar",
+              "message": "{ \"sku\": \"TABLET-10\", \"cantidad\": 1 }"
+            }
+          }
+        },
+        {
+          "name": "MOUSE-USB x999 -> FAILED_PRECONDITION",
+          "request": {
+            "method": "gRPC",
+            "url": "{{grpc_host}}",
+            "grpc": {
+              "method": "Inventario.Inventario/Reservar",
+              "message": "{ \"sku\": \"MOUSE-USB\", \"cantidad\": 999 }"
+            }
+          }
+        },
+        {
+          "name": "MOUSE-USB x30 -> OK",
+          "request": {
+            "method": "gRPC",
+            "url": "{{grpc_host}}",
+            "grpc": {
+              "method": "Inventario.Inventario/Reservar",
+              "message": "{ \"sku\": \"MOUSE-USB\", \"cantidad\": 30 }"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
